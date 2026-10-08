@@ -135,23 +135,20 @@ def stack2xarray(stack, basicMetadat, data4D = True, clipping = False):
         xpx = np.linspace(0, basicMetadat['xrange_um'], stack.shape[2])
         ypx = np.linspace(0, basicMetadat['yrange_um'], stack.shape[3])
         imgStack = xr.DataArray(stack, coords = [volcoords, slices, xpx, ypx],
-                            dims = ['volumes [s]', 'planes [µm]', 'xpix [µm]', 'ypix [µm]'])
+            dims = ['volumes [s]', 'planes [µm]', 'xpix [µm]', 'ypix [µm]'])
 
     else:
         xpx = np.linspace(0, basicMetadat['xrange_um'], stack.shape[1])
         ypx = np.linspace(0, basicMetadat['yrange_um'], stack.shape[2])
         imgStack = xr.DataArray(stack, coords = [volcoords, xpx, ypx],
-                            dims = ['volumes [s]', 'xpix [µm]', 'ypix [µm]'])
+            dims = ['volumes [s]', 'xpix [µm]', 'ypix [µm]'])
 
-    # forcing all values to be above 0 by subtracting the minimum value is prone to biases from single pixel noise. A more ideal conversion to +ve values would clip negative values to 0
-    # see: https://docs.scanimage.org/Windows+Reference+Guide/Channels.html
-    if (clipping==False):
-        minval = np.min(imgStack) 
+    if clipping==False:
+        minval = np.min(imgStack)
         if minval < 0: imgStack = imgStack - minval
-    elif (clipping==True):
-        imgStack = xr.where(imgStack<0,0,imgStack)
-    else:
-        print('no +ve conversion applied when converting to xarray')
+    elif clipping==True:
+        imgStack = np.clip(imgStack, 0, None)
+
     return imgStack
 
 ## CONVERT TO XARRAY when no time dimension
